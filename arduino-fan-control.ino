@@ -18,7 +18,9 @@ const int SEGMENT_G = 38;
 
 const int DECIMAL_POINT = 39;
 
-const int TEMP_PIN = 0;
+const int TEMP_PIN = 15;
+
+const int FAN_SWITCH = 22;
 
 const int DIGIT[] = {DIGIT_1, DIGIT_2, DIGIT_3, DIGIT_4};
 
@@ -26,6 +28,7 @@ const int SAMPLES = 255;
 float sample[SAMPLES];
 int sample_index = 0;
 int display_temp = 0;
+int warn = 0;
 
 void setup() {
   pinMode(RED_LED, OUTPUT);
@@ -45,6 +48,7 @@ void setup() {
   pinMode(SEGMENT_G, OUTPUT);
 
   pinMode(DECIMAL_POINT, OUTPUT);
+  pinMode(FAN_SWITCH, OUTPUT);
 
   digitalWrite(DIGIT_1, HIGH);
   digitalWrite(DIGIT_2, HIGH);
@@ -60,6 +64,7 @@ void setup() {
   digitalWrite(SEGMENT_G, HIGH);
 
   digitalWrite(DECIMAL_POINT, LOW);
+  digitalWrite(FAN_SWITCH, LOW);
 
   Serial.begin(9600);
 }
@@ -99,12 +104,22 @@ void loop() {
     centigrade();
     select_digit(3);
 
-    if (avg > 27.0f ) {
+    if (warn && avg < 26.0f) {
+      warn = 0;
+    }
+
+    if (!warn && avg > 27.0f) {
+      warn = 1;
+    }
+
+    if (warn) {
       digitalWrite(GREEN_LED, LOW);
       digitalWrite(RED_LED, HIGH);
+      digitalWrite(FAN_SWITCH, HIGH);
     } else {
       digitalWrite(GREEN_LED, HIGH);
       digitalWrite(RED_LED, LOW);
+      digitalWrite(FAN_SWITCH, LOW);
     }
   }
 }
